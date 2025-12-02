@@ -1,0 +1,45 @@
+.room-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--bg-primary);
+}
+
+.status-panel {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.status-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.status-item strong {
+  color: var(--text-primary);
+}
+
+.status-item code {
+  background-color: var(--bg-primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font-family: "Courier New", monospace;
+  color: var(--success);
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.editor-section {
+  flex: 1;
+  overflow: hidden;
+  padding: 1rem;
+}
