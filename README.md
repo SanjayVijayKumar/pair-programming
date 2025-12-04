@@ -2,7 +2,7 @@
 
 A FastAPI backend for real-time collaborative code editing with WebSockets support.
 
-- [Demo](./images/Demo.PNG)
+![alt text](./images/Demo.PNG)
 
 ## Features
 
