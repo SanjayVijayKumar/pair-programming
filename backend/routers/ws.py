@@ -36,9 +36,8 @@ async def websocket_endpoint(
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="Room not found")
             return
         
-        # Connect the user
-        user_id = None
-        await manager.connect(room_id, websocket, user_id or "unknown")
+        # Connect the user (accept connection first)
+        await manager.connect(room_id, websocket, "pending")
         room_state = manager.get_or_create_room(room_id)
         
         # Load initial room state from database
@@ -52,6 +51,20 @@ async def websocket_endpoint(
             "code": room_state.code,
             "language": room_state.language,
         }))
+        
+        # Wait for init message to get user_id
+        init_data = await websocket.receive_text()
+        try:
+            init_message = json.loads(init_data)
+            if init_message.get("type") == "init":
+                user_id = init_message.get("userId") or f"user-{id(websocket)}"
+        except json.JSONDecodeError:
+            user_id = f"user-{id(websocket)}"
+        
+        # Update the user connection with actual user_id
+        if room_id in manager.user_connections:
+            manager.user_connections[room_id]["pending"] = None
+            manager.user_connections[room_id][user_id] = websocket
         
         # Broadcast user joined event
         await manager.broadcast(room_id, json.dumps({
@@ -75,15 +88,9 @@ async def websocket_endpoint(
             
             message_type = message.get("type")
             
-            # Handle different message types
+            # Skip processing init message again (already handled before loop)
             if message_type == "init":
-                # Client requesting initial state
-                user_id = message.get("user_id", user_id or "unknown")
-                await websocket.send_text(json.dumps({
-                    "type": "init",
-                    "code": room_state.code,
-                    "language": room_state.language,
-                }))
+                continue
             
             elif message_type == "code_update":
                 # Update the code
@@ -153,8 +160,13 @@ async def websocket_endpoint(
                 room_state = manager.get_room_state(room_id)
                 if room_state:
                     RoomService.update_room_snapshot(db, room_id, room_state.code)
+        else:
+            # Still remove even if user_id wasn't set
+            manager.disconnect(room_id, websocket, "pending")
     
     except Exception as e:
         # Handle unexpected errors
         if user_id:
             manager.disconnect(room_id, websocket, user_id)
+        else:
+            manager.disconnect(room_id, websocket, "pending")

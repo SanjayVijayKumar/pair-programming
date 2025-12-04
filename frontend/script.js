@@ -14,7 +14,7 @@ let state = {
     ws: null,
     userCursors: {},
     usersTyping: {},
-    activeUsers: 1,
+    activeUsers: 0,
     currentSuggestion: null,
 };
 
@@ -129,7 +129,7 @@ function connectWebSocket() {
             console.log('WebSocket connected');
             updateConnectionStatus(true);
             
-            // Send init message
+            // Send init message with user ID
             sendWebSocketMessage({
                 type: 'init',
                 userId: state.userId,
@@ -182,12 +182,14 @@ function handleWebSocketMessage(message) {
             break;
 
         case 'typing':
+            console.log('Typing update:', message.user_id, message.is_typing);
             state.usersTyping[message.user_id] = message.is_typing;
             updateTypingIndicator();
             break;
 
         case 'user_joined':
-            state.activeUsers = message.active_users;
+            console.log('User joined:', message.user_id, 'Total users:', message.active_users);
+            state.activeUsers = (message.active_users > 1 ? message.active_users -1 : 1);
             updateUserCount();
             showToast('User joined the room', 'success');
             break;
@@ -414,11 +416,16 @@ function updateUserCount() {
 function updateTypingIndicator() {
     const typingUsers = Object.entries(state.usersTyping)
         .filter(([id, isTyping]) => isTyping && id !== state.userId)
-        .map(([id]) => id);
+        .map(([id]) => {
+            // Show a shortened version of the user ID
+            const shortId = id.slice(-6);
+            return shortId;
+        });
 
     if (typingUsers.length > 0) {
-        const names = typingUsers.slice(0, 2).join(', ');
-        elements.typingIndicator.textContent = `${names}${typingUsers.length > 2 ? ' and more' : ''} is typing...`;
+        const displayNames = typingUsers.slice(0, 3).join(', ');
+        const suffix = typingUsers.length > 3 ? ` and ${typingUsers.length - 3} more` : '';
+        elements.typingIndicator.textContent = `${displayNames}${suffix} ${typingUsers.length === 1 ? 'is' : 'are'} typing...`;
         elements.typingIndicator.classList.add('active');
     } else {
         elements.typingIndicator.textContent = 'No one typing';

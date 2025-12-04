@@ -6,35 +6,62 @@ from ..schemas.autocomplete import AutocompleteRequest, AutocompleteResponse
 
 router = APIRouter(prefix="/autocomplete", tags=["autocomplete"])
 
-# Common random suggestions for autocomplete
-RANDOM_SUGGESTIONS = [
-    "self.name",
-    "self.value",
-    "self.items",
-    "self.count",
-    "self.result",
-    "self.config",
-    "self.data",
-    "self.message",
-    "self.status",
-    "self.handler",
-    "self.callback",
-    "self.validate()",
-    "self.process()",
-    "self.initialize()",
-    "self.execute()",
-    "self.save()",
-    "self.update()",
-    "self.delete()",
-    "self.create()",
-    "self.load()",
-]
+# Meaningful Python suggestions based on context
+PYTHON_SUGGESTIONS = {
+    "def": [
+        "__init__(self):",
+        "main():",
+        "validate(self):",
+        "process(self):",
+        "execute(self):",
+        "get_data(self):",
+        "set_value(self, value):",
+    ],
+    "class": [
+        "(object):",
+        "(Exception):",
+        "(ABC):",
+    ],
+    "import": [
+        " os",
+        " sys",
+        " json",
+        " datetime",
+        " requests",
+        " pandas as pd",
+    ],
+    "for": [
+        " item in items:",
+        " key, value in dict.items():",
+        " i in range(10):",
+    ],
+    "if": [
+        " condition:",
+        " __name__ == '__main__':",
+        " value is not None:",
+    ],
+    "self.": [
+        "name",
+        "value",
+        "data",
+        "config",
+        "status",
+        "validate()",
+        "process()",
+        "update()",
+        "save()",
+        "load()",
+        "initialize()",
+        "execute()",
+        "create()",
+        "delete()",
+        "reset()",
+    ],
+}
 
 
 def generate_mocked_suggestion(code: str, cursor_position: int, language: str) -> str:
-    """Generate a mocked autocomplete suggestion.
-    
-    This generates random but realistic suggestions that could follow the current code.
+    """Generate a meaningful autocomplete suggestion based on context.
     
     Args:
         code: The current code content
@@ -49,40 +76,37 @@ def generate_mocked_suggestion(code: str, cursor_position: int, language: str) -
     
     # Get the text before cursor
     text_before = code[:cursor_position]
+    lines = text_before.split('\n')
+    current_line = lines[-1] if lines else ""
     
-    # Get the last word/token
-    words = text_before.split()
-    last_token = words[-1] if words else ""
+    # Get the last meaningful token
+    tokens = current_line.split()
+    last_token = tokens[-1] if tokens else ""
     
-    # Rule-based suggestions for specific patterns
     if language.lower() == "python":
-        if last_token.startswith("def "):
-            return "(self):"
-        elif last_token.startswith("class "):
-            return "(object):"
-        elif last_token == "if":
-            return " condition:"
-        elif last_token == "for":
-            return " item in items:"
-        elif last_token == "while":
-            return " condition:"
-        elif last_token == "try":
-            return ":"
-        elif last_token == "import":
-            return " module"
-        elif last_token == "from":
-            return " module import name"
-        elif last_token in ("self", "obj", "instance"):
-            # Return a random method/attribute suggestion
-            return random.choice(RANDOM_SUGGESTIONS)
-        elif "(" in last_token:
+        # Check for specific patterns
+        if "def " in current_line and not current_line.strip().endswith(":"):
+            return random.choice(PYTHON_SUGGESTIONS.get("def", ["():"]))
+        elif "class " in current_line and not current_line.strip().endswith(":"):
+            return random.choice(PYTHON_SUGGESTIONS.get("class", ["():"]))
+        elif "import " in current_line and not current_line.strip().startswith("from"):
+            return random.choice(PYTHON_SUGGESTIONS.get("import", [" module"]))
+        elif "from " in current_line:
+            return " import "
+        elif "for " in current_line and not current_line.strip().endswith(":"):
+            return random.choice(PYTHON_SUGGESTIONS.get("for", [" in items:"]))
+        elif "if " in current_line and not current_line.strip().endswith(":"):
+            return random.choice(PYTHON_SUGGESTIONS.get("if", [" condition:"]))
+        elif last_token == "self.":
+            return random.choice(PYTHON_SUGGESTIONS.get("self.", ["value"]))
+        elif "(" in last_token and ")" not in last_token:
             return ")"
         else:
-            # Return a random suggestion
-            return random.choice(RANDOM_SUGGESTIONS)
+            # Return a generic suggestion
+            return random.choice(PYTHON_SUGGESTIONS.get("self.", ["value"]))
     
-    # Default suggestion for other languages
-    return random.choice(RANDOM_SUGGESTIONS)
+    # Default for other languages
+    return "_suggestion"
 
 
 @router.post("", response_model=AutocompleteResponse, status_code=status.HTTP_200_OK)

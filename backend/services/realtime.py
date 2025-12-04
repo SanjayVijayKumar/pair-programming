@@ -121,7 +121,10 @@ class ConnectionManager:
             user_id: The user ID
         """
         if room_id in self.connections:
-            self.connections[room_id].remove(websocket)
+            try:
+                self.connections[room_id].remove(websocket)
+            except ValueError:
+                pass
         
         if room_id in self.user_connections:
             self.user_connections[room_id].pop(user_id, None)
