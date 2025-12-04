@@ -321,5 +321,3 @@ export CORS_ORIGINS="http://localhost:3000 http://localhost:5173"
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
 - [WebSockets with FastAPI](https://fastapi.tiangolo.com/advanced/websockets/)
-- [SQLAlchemy with FastAPI](https://fastapi.tiangolo.com/advanced/sql-databases/)
-- [Render Deployment](https://render.com/docs)
