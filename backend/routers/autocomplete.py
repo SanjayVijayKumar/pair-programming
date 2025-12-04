@@ -1,16 +1,40 @@
 """REST endpoints for autocomplete operations."""
+import random
 from fastapi import APIRouter, status
 
 from ..schemas.autocomplete import AutocompleteRequest, AutocompleteResponse
 
 router = APIRouter(prefix="/autocomplete", tags=["autocomplete"])
 
+# Common random suggestions for autocomplete
+RANDOM_SUGGESTIONS = [
+    "self.name",
+    "self.value",
+    "self.items",
+    "self.count",
+    "self.result",
+    "self.config",
+    "self.data",
+    "self.message",
+    "self.status",
+    "self.handler",
+    "self.callback",
+    "self.validate()",
+    "self.process()",
+    "self.initialize()",
+    "self.execute()",
+    "self.save()",
+    "self.update()",
+    "self.delete()",
+    "self.create()",
+    "self.load()",
+]
+
 
 def generate_mocked_suggestion(code: str, cursor_position: int, language: str) -> str:
     """Generate a mocked autocomplete suggestion.
     
-    This is a simple rule-based mock implementation that provides suggestions
-    based on common Python patterns.
+    This generates random but realistic suggestions that could follow the current code.
     
     Args:
         code: The current code content
@@ -30,31 +54,35 @@ def generate_mocked_suggestion(code: str, cursor_position: int, language: str) -
     words = text_before.split()
     last_token = words[-1] if words else ""
     
-    # Simple rule-based suggestions
+    # Rule-based suggestions for specific patterns
     if language.lower() == "python":
         if last_token.startswith("def "):
-            return "(self):\n    pass"
+            return "(self):"
         elif last_token.startswith("class "):
-            return ":\n    pass"
+            return "(object):"
         elif last_token == "if":
-            return " condition:\n    pass"
+            return " condition:"
         elif last_token == "for":
-            return " item in items:\n    pass"
+            return " item in items:"
         elif last_token == "while":
-            return " condition:\n    pass"
+            return " condition:"
         elif last_token == "try":
-            return ":\n    pass\nexcept Exception:\n    pass"
+            return ":"
         elif last_token == "import":
             return " module"
         elif last_token == "from":
             return " module import name"
+        elif last_token in ("self", "obj", "instance"):
+            # Return a random method/attribute suggestion
+            return random.choice(RANDOM_SUGGESTIONS)
         elif "(" in last_token:
             return ")"
         else:
-            return "_placeholder"
+            # Return a random suggestion
+            return random.choice(RANDOM_SUGGESTIONS)
     
     # Default suggestion for other languages
-    return "..."
+    return random.choice(RANDOM_SUGGESTIONS)
 
 
 @router.post("", response_model=AutocompleteResponse, status_code=status.HTTP_200_OK)

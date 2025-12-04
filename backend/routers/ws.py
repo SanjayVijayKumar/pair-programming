@@ -88,7 +88,7 @@ async def websocket_endpoint(
             elif message_type == "code_update":
                 # Update the code
                 new_code = message.get("code", "")
-                sender_user_id = message.get("userId", user_id or "unknown")
+                sender_user_id = message.get("userId") or message.get("user_id") or user_id or "unknown"
                 timestamp = message.get("timestamp", 0)
                 
                 room_state.update_code(new_code, sender_user_id)
@@ -103,8 +103,8 @@ async def websocket_endpoint(
             
             elif message_type == "cursor_update":
                 # Update cursor position
-                sender_user_id = message.get("userId", user_id or "unknown")
-                cursor_position = message.get("cursorPosition", 0)
+                sender_user_id = message.get("userId") or message.get("user_id") or user_id or "unknown"
+                cursor_position = message.get("cursorPosition") or message.get("cursor_position", 0)
                 
                 room_state.update_cursor(sender_user_id, cursor_position)
                 
@@ -117,8 +117,8 @@ async def websocket_endpoint(
             
             elif message_type == "typing":
                 # Update typing status
-                sender_user_id = message.get("userId", user_id or "unknown")
-                is_typing = message.get("isTyping", False)
+                sender_user_id = message.get("userId") or message.get("user_id") or user_id or "unknown"
+                is_typing = message.get("isTyping") or message.get("is_typing", False)
                 
                 room_state.update_typing(sender_user_id, is_typing)
                 

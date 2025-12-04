@@ -15,6 +15,7 @@ let state = {
     userCursors: {},
     usersTyping: {},
     activeUsers: 1,
+    currentSuggestion: null,
 };
 
 const userColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
@@ -62,6 +63,7 @@ function setupEventListeners() {
     elements.joinRoomBtn.addEventListener('click', joinRoom);
     elements.shareRoomBtn.addEventListener('click', shareRoom);
     elements.codeEditor.addEventListener('input', handleCodeChange);
+    elements.codeEditor.addEventListener('keydown', handleEditorKeyDown);
     elements.codeEditor.addEventListener('keyup', updateCursorPosition);
     elements.codeEditor.addEventListener('click', updateCursorPosition);
     elements.dismissSuggestion.addEventListener('click', dismissSuggestion);
@@ -259,6 +261,18 @@ function handleCodeChange() {
     });
 }
 
+// Handle Editor Key Down (for Tab and Enter to accept suggestions)
+function handleEditorKeyDown(event) {
+    // Accept suggestion with Tab or Ctrl+Enter
+    if ((event.key === 'Tab' || (event.key === 'Enter' && event.ctrlKey)) && 
+        state.currentSuggestion && 
+        elements.autocompleteSection.style.display !== 'none') {
+        
+        event.preventDefault();
+        acceptSuggestion();
+    }
+}
+
 // Update Cursor Position
 function updateCursorPosition() {
     const cursorPos = elements.codeEditor.selectionStart;
@@ -306,20 +320,55 @@ async function fetchAutocomplete() {
 
 // Show Autocomplete
 function showAutocomplete(suggestion) {
-    if (suggestion && suggestion !== '...') {
+    if (suggestion && suggestion !== '...' && suggestion.trim() !== '') {
+        state.currentSuggestion = suggestion;
+        
         // Get the current text before cursor
         const cursorPos = elements.codeEditor.selectionStart;
         const textBeforeCursor = elements.codeEditor.value.substring(0, cursorPos);
         const lastSpaceIndex = textBeforeCursor.lastIndexOf(' ');
-        const lastWord = lastSpaceIndex === -1 
+        const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+        const lastBreakIndex = Math.max(lastSpaceIndex, lastNewlineIndex);
+        const lastWord = lastBreakIndex === -1 
             ? textBeforeCursor 
-            : textBeforeCursor.substring(lastSpaceIndex + 1);
+            : textBeforeCursor.substring(lastBreakIndex + 1);
         
         // Show typed text and gray suggestion
         elements.typedText.textContent = lastWord;
         elements.suggestionText.textContent = suggestion;
         elements.autocompleteSection.style.display = 'block';
+    } else {
+        elements.autocompleteSection.style.display = 'none';
+        state.currentSuggestion = null;
     }
+}
+
+// Accept Suggestion (Tab or Ctrl+Enter)
+function acceptSuggestion() {
+    if (!state.currentSuggestion) return;
+    
+    const cursorPos = elements.codeEditor.selectionStart;
+    const textBeforeCursor = elements.codeEditor.value.substring(0, cursorPos);
+    const textAfterCursor = elements.codeEditor.value.substring(cursorPos);
+    
+    // Find the last word to replace
+    const lastSpaceIndex = textBeforeCursor.lastIndexOf(' ');
+    const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+    const lastBreakIndex = Math.max(lastSpaceIndex, lastNewlineIndex);
+    const insertPosition = lastBreakIndex + 1;
+    
+    // Insert suggestion
+    const newCode = textBeforeCursor + state.currentSuggestion + textAfterCursor;
+    elements.codeEditor.value = newCode;
+    
+    // Update cursor position after suggestion
+    const newCursorPos = cursorPos + state.currentSuggestion.length;
+    elements.codeEditor.selectionStart = newCursorPos;
+    elements.codeEditor.selectionEnd = newCursorPos;
+    
+    // Dismiss suggestion and trigger code change
+    dismissSuggestion();
+    handleCodeChange();
 }
 
 // Dismiss Autocomplete
