@@ -1,86 +1,101 @@
-"""
-Main FastAPI application entry point.
-"""
-import logging
+"""Main FastAPI application with static file serving."""
 from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
-from backend.db.base import engine, async_session
-from backend.db import models
-from backend.api import rooms, autocomplete, ws
-from backend.core.config import settings
+from fastapi.staticfiles import StaticFiles
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from backend.core.config import (
+    API_V1_PREFIX,
+    API_TITLE,
+    API_VERSION,
+    CORS_ORIGINS,
+    CORS_ALLOW_CREDENTIALS,
+    CORS_ALLOW_METHODS,
+    CORS_ALLOW_HEADERS,
+)
+from backend.db.database import init_db
+from backend.routers import rooms, autocomplete, ws
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Application lifespan: startup and shutdown events.
+    
+    Args:
+        app: The FastAPI application
     """
-    Manage application lifespan: startup and shutdown.
-    """
-    # Startup: Create tables
-    logger.info("Creating database tables...")
-    async with engine.begin() as conn:
-        await conn.run_sync(models.SQLModel.metadata.create_all)
-    logger.info("Database tables created.")
+    # Startup
+    print("Starting up: Initializing database...")
+    init_db()
+    print("Database initialized successfully.")
     
     yield
     
-    # Shutdown: Close connections
-    logger.info("Shutting down...")
-    await engine.dispose()
+    # Shutdown
+    print("Shutting down...")
 
 
+# Create FastAPI application
 app = FastAPI(
-    title="Pair Programming App",
-    description="Real-time collaborative code editor",
-    version="0.1.0",
+    title=API_TITLE,
+    version=API_VERSION,
+    description="Backend for real-time pair programming with WebSockets",
     lifespan=lifespan,
 )
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify allowed origins
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=CORS_ALLOW_CREDENTIALS,
+    allow_methods=CORS_ALLOW_METHODS,
+    allow_headers=CORS_ALLOW_HEADERS,
 )
 
+# Mount static files from frontend folder
+frontend_dir = Path(__file__).parent.parent / "frontend"
+if frontend_dir.exists():
+    app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
+
 # Include routers
-app.include_router(rooms.router)
-app.include_router(autocomplete.router)
-app.include_router(ws.router)
+app.include_router(rooms.router, prefix=API_V1_PREFIX)
+app.include_router(autocomplete.router, prefix=API_V1_PREFIX)
+app.include_router(ws.router, prefix=API_V1_PREFIX)
 
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint."""
-    try:
-        async with async_session() as session:
-            await session.execute(text("SELECT 1"))
-        return {"status": "ok", "database": "connected"}
-    except Exception as e:
-        logger.error(f"Health check failed: {e}")
-        return {"status": "error", "database": "disconnected", "error": str(e)}
+@app.get("/health", tags=["health"])
+async def health_check() -> dict:
+    """Health check endpoint.
+    
+    Returns:
+        A dictionary indicating the application status
+    """
+    return {"status": "healthy"}
 
 
-@app.get("/")
-async def root():
-    """Root endpoint."""
+@app.get("/", tags=["root"])
+async def root() -> dict:
+    """Root endpoint.
+    
+    Returns:
+        A welcome message
+    """
     return {
-        "message": "Pair Programming App Backend",
+        "message": "Welcome to Pair Programming Backend",
+        "version": API_VERSION,
         "docs": "/docs",
     }
 
 
 if __name__ == "__main__":
     import uvicorn
+    
+    # Run the application
     uvicorn.run(
         "backend.main:app",
         host="0.0.0.0",
         port=8000,
-        reload=settings.debug,
+        reload=True,
     )

@@ -1,21 +1,40 @@
-"""
-Configuration settings for the backend.
-"""
+"""Application configuration and settings."""
 import os
-from pydantic_settings import BaseSettings
+from pathlib import Path
+from typing import Optional
 
+# Get the backend directory path
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-class Settings(BaseSettings):
-    """Application settings."""
+# Database configuration
+DATABASE_PATH: str = os.getenv("DATABASE_PATH", str(BASE_DIR / "data" / "app.db"))
+DATABASE_URL: str = f"sqlite:///{DATABASE_PATH}"
 
-    database_url: str = os.getenv(
-        "DATABASE_URL",
-        "postgresql+asyncpg://user:password@localhost/pair_programming_app",
-    )
-    debug: bool = os.getenv("DEBUG", "True").lower() == "true"
+# API configuration
+API_V1_PREFIX: str = "/api"
+API_TITLE: str = "Pair Programming Backend"
+API_VERSION: str = "1.0.0"
 
-    class Config:
-        env_file = ".env"
+# CORS configuration
+CORS_ORIGINS: list = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+    "file://",  # For local HTML files
+]
 
+CORS_ALLOW_CREDENTIALS: bool = True
+CORS_ALLOW_METHODS: list = ["*"]
+CORS_ALLOW_HEADERS: list = ["*"]
 
-settings = Settings()
+# WebSocket configuration
+WS_ENDPOINT_PREFIX: str = f"{API_V1_PREFIX}/ws"
+
+# Default language for new rooms
+DEFAULT_LANGUAGE: str = "python"
+
+# Room configuration
+DEFAULT_ROOM_CODE: str = "# Welcome to the pair programming room!\n# Start typing here...\n"

@@ -1,13 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pair Programming App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pair Programming - Real-time Code Editor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">💻 Pair Programming</h1>
+                <div class="header-info">
+                    <span class="status-indicator" id="status">●</span>
+                    <span class="status-text" id="statusText">Connecting...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Room Info Panel -->
+            <aside class="sidebar">
+                <div class="panel">
+                    <h2>Room</h2>
+                    <div class="room-info">
+                        <button id="createRoomBtn" class="btn btn-primary">Create New Room</button>
+                        <div class="info-item">
+                            <label>Room ID:</label>
+                            <div class="room-id-container">
+                                <input type="text" id="roomId" readonly class="input-readonly">
+                                <button id="shareRoomBtn" class="btn-small" title="Copy share link">Share</button>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <label>Users Online:</label>
+                            <span id="userCount" class="user-count">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>Join Room</h2>
+                    <input type="text" id="joinRoomId" placeholder="Enter Room ID" class="input">
+                    <button id="joinRoomBtn" class="btn btn-secondary">Join Room</button>
+                </div>
+
+                <div class="panel">
+                    <h2>Users Typing</h2>
+                    <div id="typingIndicator" class="typing-indicator">No one typing</div>
+                </div>
+
+                <div class="panel">
+                    <h2>Active Users</h2>
+                    <div id="activeUsers" class="active-users">
+                        <div class="user-badge" style="background-color: #FF6B6B;">You</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Editor Section -->
+            <section class="editor-section">
+                <div class="editor-container">
+                    <div class="editor-header">
+                        <div class="editor-title">Python Editor</div>
+                        <div class="cursor-legend" id="cursorLegend"></div>
+                    </div>
+                    <textarea id="codeEditor" class="code-editor" placeholder="# Start typing Python code here..."></textarea>
+                </div>
+
+                <!-- Autocomplete Section -->
+                <div class="autocomplete-section" id="autocompleteSection" style="display: none;">
+                    <div class="autocomplete-header">
+                        <span>💡 Autocomplete</span>
+                        <button id="dismissSuggestion" class="btn-dismiss">✕</button>
+                    </div>
+                    <div class="autocomplete-content">
+                        <span id="typedText" class="typed-text"></span><span id="suggestionText" class="suggestion-text"></span>
+                    </div>
+                </div>
+
+                <!-- Status Bar -->
+                <footer class="status-bar">
+                    <div class="status-left">
+                        <span>Cursor: <span id="cursorPos">0:0</span></span>
+                        <span class="separator">|</span>
+                        <span>Ln <span id="lineNo">1</span>, Col <span id="colNo">0</span></span>
+                    </div>
+                    <div class="status-right">
+                        <span id="connectionStatus" class="connection-status">Connected</span>
+                        <span class="separator">|</span>
+                        <span id="syncStatus" class="sync-status">Synced</span>
+                    </div>
+                </footer>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast"></div>
+
+    <script src="script.js"></script>
+</body>
 </html>

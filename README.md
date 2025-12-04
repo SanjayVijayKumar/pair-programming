@@ -1,178 +1,323 @@
-# Pair Programming App
+# Pair Programming Backend
 
-A real-time collaborative code editor built with FastAPI (backend) and React (frontend).
+A FastAPI backend for real-time collaborative code editing with WebSockets support.
+
+![alt text](./images/Demo.PNG)
 
 ## Features
 
-- **Real-time Collaboration**: Two users can edit code simultaneously in a shared room
-- **WebSocket Communication**: Instant updates across all connected clients
-- **AI Autocomplete**: Mocked AI suggestions when typing pauses for 600ms
-- **Last-Write-Wins Sync**: Simple but effective conflict resolution
-- **No Authentication**: Just create a room and share the URL
-
-## Tech Stack
-
-### Backend
-- **FastAPI**: Modern Python web framework
-- **WebSockets**: Real-time bidirectional communication
-- **PostgreSQL**: Persistent storage with async support
-- **SQLModel**: SQL and Python dataclasses for database models
-
-### Frontend
-- **React 18**: UI library
-- **TypeScript**: Type-safe development
-- **Redux Toolkit**: State management
-- **React Router**: Client-side routing
-- **Vite**: Fast build tool and dev server
+✨ **Real-time Collaboration**
+- WebSocket-based live code synchronization
+- Cursor position tracking for multiple users
+- Typing indicators
+- In-memory room state management
+- Last-write-wins conflict resolution
 
 ## Project Structure
 
 ```
-pair-programming-app/
-├── backend/                 # FastAPI application
-│   ├── main.py             # Entry point
-│   ├── api/                # API routers
-│   │   ├── rooms.py        # Room creation endpoint
-│   │   ├── autocomplete.py # Autocomplete endpoint
-│   │   └── ws.py           # WebSocket endpoint
-│   ├── core/               # Configuration
-│   ├── db/                 # Database models
-│   ├── services/           # Business logic
-│   ├── schemas/            # Pydantic models
-│   └── requirements.txt    # Python dependencies
-└── frontend/               # React application
-    ├── src/
-    │   ├── redux/          # Redux slices and store
-    │   ├── pages/          # Page components
-    │   ├── components/     # UI components
-    │   ├── hooks/          # Custom hooks
-    │   ├── utils/          # Utility functions
-    │   ├── styles/         # CSS files
-    │   └── main.tsx        # Entry point
-    ├── package.json        # Node dependencies
-    └── vite.config.ts      # Vite configuration
+backend/
+├── main.py
+├── core/
+│   └── config.py           # Configuration and settings
+├── db/
+│   ├── database.py         # SQLite connection and DB utilities
+│   └── models.py           # SQLAlchemy models (Room)
+├── schemas/
+│   ├── room.py             # Pydantic schemas for rooms
+│   └── autocomplete.py     # Pydantic schemas for autocomplete
+├── services/
+│   ├── room_service.py     # Room business logic
+│   └── realtime.py         # ConnectionManager and RoomState
+├── routers/
+│   ├── rooms.py            # Room REST endpoints
+│   ├── autocomplete.py     # Autocomplete endpoints
+│   └── ws.py               # WebSocket endpoint
+└── data/
+    └── app.db              # SQLite database (auto-created)
 ```
 
-## Getting Started
+## Installation
 
 ### Prerequisites
+- Python 3.9 or higher
+- pip package manager
 
-- Python 3.11+
-- Node.js 18+
-- PostgreSQL 13+
+### Setup
+- [Getting started guide](./GETTING_STARTED.md)
 
-### Backend Setup
+### Features offered
+- [Features](./FEATURES.md)
 
-1. **Create a virtual environment:**
-   ```bash
-   cd backend
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+## API Documentation
 
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Interactive Docs
+Once the server is running, visit:
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
 
-3. **Set up environment variables:**
-   Create a `.env` file in the `backend/` directory:
-   ```
-   DATABASE_URL=postgresql+asyncpg://user:password@localhost/pair_programming_app
-   DEBUG=True
-   ```
+### REST Endpoints
 
-4. **Create the database:**
-   ```bash
-   createdb pair_programming_app
-   ```
-
-5. **Run the backend:**
-   ```bash
-   uvicorn backend.main:app --reload
-   ```
-   The API will be available at `http://localhost:8000`
-   Swagger docs: `http://localhost:8000/docs`
-
-### Frontend Setup
-
-1. **Install dependencies:**
-   ```bash
-   cd frontend
-   npm install
-   ```
-
-2. **Set up environment variables:**
-   Create a `.env.local` file in the `frontend/` directory:
-   ```
-   VITE_BACKEND_URL=http://localhost:8000
-   ```
-
-3. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-   The app will be available at `http://localhost:3000`
-
-## API Endpoints
-
-### Rooms
-- **POST /api/rooms/**: Create a new room
-  - Response: `{ "room_id": "<uuid>" }`
-
-### Autocomplete
-- **POST /api/autocomplete/**: Get autocomplete suggestions
-  - Body: `{ "code": string, "cursor_position": int, "language": "python" }`
-  - Response: `{ "suggestion": string }`
-
-### WebSocket
-- **WS /api/ws/ws/{room_id}**: Connect to a room
-  - **Message types:**
-    - `init_request`: Request current room state
-    - `init_state`: Response with current code
-    - `code_update`: Notify of code changes
-
-## Usage
-
-1. Visit `http://localhost:3000` in your browser
-2. Click "Create Room" to generate a new collaborative space
-3. Share the room URL with another user
-4. Both users can edit the same code simultaneously
-5. Suggestions appear after typing pauses for 600ms
-
-## Known Limitations
-
-- **In-Memory State**: Room code state exists only in memory; restarting the backend clears all sessions
-- **Single-Instance Only**: Designed for a single backend instance; scaling requires connection manager distribution
-- **No Persistence Between Sessions**: Code is not saved to database by default (snapshots are optional)
-- **Basic UI**: Editor is a simple textarea; no syntax highlighting or advanced features
-- **Mocked Autocomplete**: Suggestions are rule-based, not AI-powered
-
-## Future Enhancements
-
-- Persistent code storage with version history
-- User authentication and authorization
-- Real syntax highlighting with Monaco or CodeMirror
-- Undo/redo support with operation transforms
-- Multiple file support
-- Code execution environment
-- User presence indicators
-- Chat/comments system
-
-## Development
-
-### Backend Tests
-```bash
-cd backend
-pytest
+#### Health Check
+```http
+GET /health
 ```
 
-### Frontend Tests
-```bash
-cd frontend
-npm test
+Response:
+```json
+{
+  "status": "healthy"
+}
 ```
 
-## License
+#### Create Room
+```http
+POST /api/rooms
+```
 
-MIT
+Response (201 Created):
+```json
+{
+  "room_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+#### Get Room
+```http
+GET /api/rooms/{room_id}
+```
+
+Response:
+```json
+{
+  "room_id": "550e8400-e29b-41d4-a716-446655440000",
+  "created_at": "2024-12-03T10:30:00",
+  "last_updated": "2024-12-03T10:35:00"
+}
+```
+
+#### Autocomplete
+```http
+POST /api/autocomplete
+Content-Type: application/json
+
+{
+  "code": "def my_function",
+  "cursor_position": 15,
+  "language": "python"
+}
+```
+
+Response:
+```json
+{
+  "suggestion": "(self):\n    pass",
+  "context": "Context for python"
+}
+```
+
+### WebSocket Endpoint
+
+**URL**: `ws://localhost:8000/api/ws/{room_id}`
+
+#### Message Types
+
+**Client → Server:**
+
+1. **Initialize** (on connection):
+```json
+{
+  "type": "init",
+  "userId": "user-123"
+}
+```
+
+2. **Code Update**:
+```json
+{
+  "type": "code_update",
+  "userId": "user-123",
+  "code": "def hello():\n    print('Hello')",
+  "timestamp": 1701600600000
+}
+```
+
+3. **Cursor Position**:
+```json
+{
+  "type": "cursor_update",
+  "userId": "user-123",
+  "cursorPosition": 42
+}
+```
+
+4. **Typing Indicator**:
+```json
+{
+  "type": "typing",
+  "userId": "user-123",
+  "isTyping": true
+}
+```
+
+**Server → Client:**
+
+1. **Initial State** (on connect):
+```json
+{
+  "type": "init",
+  "code": "# Welcome to the pair programming room!",
+  "language": "python"
+}
+```
+
+2. **Code Broadcast**:
+```json
+{
+  "type": "code_update",
+  "code": "def hello():\n    print('Hello')",
+  "user_id": "user-123",
+  "timestamp": 1701600600000
+}
+```
+
+3. **Cursor Broadcast**:
+```json
+{
+  "type": "cursor_update",
+  "user_id": "user-123",
+  "cursor_position": 42
+}
+```
+
+4. **Typing Broadcast**:
+```json
+{
+  "type": "typing",
+  "user_id": "user-123",
+  "is_typing": true
+}
+```
+
+5. **User Presence**:
+```json
+{
+  "type": "user_joined",
+  "user_id": "user-123",
+  "active_users": 2
+}
+```
+
+```json
+{
+  "type": "user_left",
+  "user_id": "user-123",
+  "active_users": 1
+}
+```
+
+6. **Error**:
+```json
+{
+  "type": "error",
+  "message": "Invalid message format"
+}
+```
+
+## Database Schema
+
+### Room Table
+```sql
+CREATE TABLE rooms (
+  id VARCHAR(36) PRIMARY KEY,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_snapshot TEXT,
+  last_updated DATETIME
+);
+```
+
+The database is automatically initialized on application startup.
+
+## Configuration
+
+Edit `backend/core/config.py` to customize:
+
+- **Database Path**: `DATABASE_PATH`
+- **CORS Origins**: `CORS_ORIGINS`
+- **API Prefix**: `API_V1_PREFIX`
+- **Default Language**: `DEFAULT_LANGUAGE`
+- **Default Code**: `DEFAULT_ROOM_CODE`
+
+### Environment Variables
+
+```bash
+# Set custom database path
+export DATABASE_PATH=/path/to/database.db
+
+# Set CORS origins (space-separated)
+export CORS_ORIGINS="http://localhost:3000 http://localhost:5173"
+```
+
+## Architecture & Design Choices
+
+### Backend Architecture
+- **Framework**: Python 3.9 FastAPI for high-performance async HTTP server
+- **Database**: SQLite for room metadata persistence and optional code snapshots
+- **State Management**: In-memory state for live data (cursor positions, typing indicators, code)
+
+### Real-Time Synchronization
+- **WebSocket Pattern**: One WebSocket endpoint per room with ConnectionManager pattern
+- **Connection Management**: Centralized tracking of all active rooms and connected clients
+- **Sync Strategy**: Last-write-wins for code updates - simplest approach for prototype, suitable for focused pair programming
+
+### Frontend Architecture
+- **UI Framework**: Vanilla HTML5 + CSS3 + JavaScript (no build tools)
+- **Editor**: Textarea-based editor with syntax highlighting support
+- **Real-Time Updates**: Debounced WebSocket messages (300ms for code, 500ms for cursor)
+- **Autocomplete**: Context-aware Python suggestions with Tab/Ctrl+Enter to accept
+
+### Message Protocol
+- **Format**: JSON messages over WebSocket
+- **Message Types**: `init`, `code_update`, `cursor_update`, `typing`, `user_joined`, `user_left`, `error`
+- **Broadcasting**: Server broadcasts to all or specific clients per message type
+
+## Scope for improvement
+
+### Scaling & Performance
+- **Redis Pub/Sub**: Enable horizontal scaling by broadcasting WebSocket messages across multiple FastAPI instances. Socket setup with redis adaptor
+- **Redis Streams**: Store message history for late joiners to sync code and cursor state instantly
+
+### Data Persistence & Recovery
+- **Periodic Snapshots**: Auto-save code snapshots at regular intervals (every 30 seconds)
+- **Message History**: Store edit history for recovery and audit trails
+
+### Security & Access Control
+- **Authentication**: User login/signup with JWT tokens or OAuth2
+- **Room Permissions**: Private rooms with invite-only access control
+- **Encryption**: End-to-end encryption for sensitive code
+- **Audit Logging**: Track who made what changes and when
+- **No Access Control**: No permissions or room privacy settings
+
+### User Experience
+- **Rich Editor**: Full Monaco Editor integration with syntax highlighting, themes, keybindings
+- **Inline Autocomplete**: Show suggestions inline with real-time preview
+- **Multi-Cursor Display**: Visual indicators for all users' cursors with live tracking
+- **Presence Avatars**: User avatars and status indicators
+- **Code Review Features**: Commenting, suggestions, diff view
+- **Theme Support**: Dark/light themes with user preferences
+
+## Limitations
+
+### Scalability Limitations
+- **Single Instance Only**: Current prototype runs on single FastAPI instance; in-memory state doesn't support horizontal scaling
+- **No Fault Tolerance**: Server restart loses all active sessions and in-memory state
+
+### Data Consistency
+- **Last-Write-Wins Only**: Simple conflict resolution can overwrite edits in rapid simultaneous typing
+- **No Edit History**: Late joiners can't see previous edits or code history
+- **No Undo/Redo**: Changes to code are permanent within session
+
+## References
+
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [WebSockets with FastAPI](https://fastapi.tiangolo.com/advanced/websockets/)

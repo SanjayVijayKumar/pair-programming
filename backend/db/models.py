@@ -1,28 +1,23 @@
-"""
-SQLModel database models.
-"""
+"""SQLAlchemy/SQLModel database models."""
 from datetime import datetime
-from uuid import UUID, uuid4
-from sqlalchemy import Column, String
-from sqlmodel import SQLModel, Field
+from typing import Optional
+
+from sqlalchemy import Column, DateTime, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.sql import func
+
+Base = declarative_base()
 
 
-class Room(SQLModel, table=True):
-    """Room model for storing room metadata."""
-
+class Room(Base):
+    """Room model for storing room metadata and snapshots."""
+    
     __tablename__ = "rooms"
-
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-
-class RoomCodeSnapshot(SQLModel, table=True):
-    """Store periodic snapshots of room code state."""
-
-    __tablename__ = "room_code_snapshots"
-
-    id: UUID = Field(default_factory=uuid4, primary_key=True)
-    room_id: UUID = Field(foreign_key="rooms.id")
-    code: str = Field(default="")
-    language: str = Field(default="python")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    id: str = Column(String(36), primary_key=True, index=True)
+    created_at: datetime = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    last_snapshot: Optional[str] = Column(String(65536), nullable=True)
+    last_updated: datetime = Column(DateTime(timezone=True), onupdate=func.now(), nullable=True)
+    
+    def __repr__(self) -> str:
+        return f"<Room id={self.id} created_at={self.created_at}>"
