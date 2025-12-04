@@ -34,6 +34,7 @@ const elements = {
     activeUsers: document.getElementById('activeUsers'),
     cursorLegend: document.getElementById('cursorLegend'),
     autocompleteSection: document.getElementById('autocompleteSection'),
+    typedText: document.getElementById('typedText'),
     suggestionText: document.getElementById('suggestionText'),
     dismissSuggestion: document.getElementById('dismissSuggestion'),
     connectionStatus: document.getElementById('connectionStatus'),
@@ -41,7 +42,7 @@ const elements = {
     lineNo: document.getElementById('lineNo'),
     colNo: document.getElementById('colNo'),
     cursorPos: document.getElementById('cursorPos'),
-    copyRoomId: document.getElementById('copyRoomId'),
+    shareRoomBtn: document.getElementById('shareRoomBtn'),
     toast: document.getElementById('toast'),
 };
 
@@ -49,13 +50,17 @@ const elements = {
 document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadRoomFromURL();
+    // Auto-create room if no room exists
+    if (!state.roomId) {
+        createRoom();
+    }
 });
 
 // Event Listeners Setup
 function setupEventListeners() {
     elements.createRoomBtn.addEventListener('click', createRoom);
     elements.joinRoomBtn.addEventListener('click', joinRoom);
-    elements.copyRoomId.addEventListener('click', copyRoomId);
+    elements.shareRoomBtn.addEventListener('click', shareRoom);
     elements.codeEditor.addEventListener('input', handleCodeChange);
     elements.codeEditor.addEventListener('keyup', updateCursorPosition);
     elements.codeEditor.addEventListener('click', updateCursorPosition);
@@ -302,6 +307,16 @@ async function fetchAutocomplete() {
 // Show Autocomplete
 function showAutocomplete(suggestion) {
     if (suggestion && suggestion !== '...') {
+        // Get the current text before cursor
+        const cursorPos = elements.codeEditor.selectionStart;
+        const textBeforeCursor = elements.codeEditor.value.substring(0, cursorPos);
+        const lastSpaceIndex = textBeforeCursor.lastIndexOf(' ');
+        const lastWord = lastSpaceIndex === -1 
+            ? textBeforeCursor 
+            : textBeforeCursor.substring(lastSpaceIndex + 1);
+        
+        // Show typed text and gray suggestion
+        elements.typedText.textContent = lastWord;
         elements.suggestionText.textContent = suggestion;
         elements.autocompleteSection.style.display = 'block';
     }
@@ -364,19 +379,26 @@ function updateTypingIndicator() {
 
 // Update Cursor Legend
 function updateCursorLegend() {
-    elements.cursorLegend.innerHTML = Object.entries(state.userCursors)
-        .map(([userId, position]) => {
-            const color = userColors[colorIndex % userColors.length];
-            return `<span style="color: ${color};">●</span>`;
+    const cursorIndicators = Object.entries(state.userCursors)
+        .map(([userId, position], index) => {
+            const color = userColors[index % userColors.length];
+            const shortUserId = userId.slice(-6);
+            return `<div class="cursor-indicator" title="User: ${userId}, Line: ${position}">
+                <span class="cursor-indicator-dot" style="background-color: ${color};"></span>
+                <span class="cursor-indicator-text">${shortUserId}</span>
+            </div>`;
         })
         .join('');
+    
+    elements.cursorLegend.innerHTML = cursorIndicators;
 }
 
-// Copy Room ID
-function copyRoomId() {
+// Share Room (copy share link)
+function shareRoom() {
     if (state.roomId) {
-        navigator.clipboard.writeText(state.roomId);
-        showToast('Room ID copied to clipboard!', 'success');
+        const shareUrl = `${window.location.origin}${window.location.pathname}?room=${state.roomId}`;
+        navigator.clipboard.writeText(shareUrl);
+        showToast('Share link copied to clipboard!', 'success');
     }
 }
 

@@ -24,23 +24,21 @@
             <!-- Room Info Panel -->
             <aside class="sidebar">
                 <div class="panel">
-                    <h2>Room Info</h2>
+                    <h2>Room</h2>
                     <div class="room-info">
+                        <button id="createRoomBtn" class="btn btn-primary">Create New Room</button>
                         <div class="info-item">
                             <label>Room ID:</label>
-                            <input type="text" id="roomId" readonly class="input-readonly">
-                            <button id="copyRoomId" class="btn-small">Copy</button>
+                            <div class="room-id-container">
+                                <input type="text" id="roomId" readonly class="input-readonly">
+                                <button id="shareRoomBtn" class="btn-small" title="Copy share link">Share</button>
+                            </div>
                         </div>
                         <div class="info-item">
                             <label>Users Online:</label>
                             <span id="userCount" class="user-count">0</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="panel">
-                    <h2>Create Room</h2>
-                    <button id="createRoomBtn" class="btn btn-primary">Create New Room</button>
                 </div>
 
                 <div class="panel">
@@ -75,11 +73,11 @@
                 <!-- Autocomplete Section -->
                 <div class="autocomplete-section" id="autocompleteSection" style="display: none;">
                     <div class="autocomplete-header">
-                        <span>💡 Suggestion</span>
+                        <span>💡 Autocomplete</span>
                         <button id="dismissSuggestion" class="btn-dismiss">✕</button>
                     </div>
                     <div class="autocomplete-content">
-                        <code id="suggestionText"></code>
+                        <span id="typedText" class="typed-text"></span><span id="suggestionText" class="suggestion-text"></span>
                     </div>
                 </div>
 
