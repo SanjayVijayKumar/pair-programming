@@ -2,6 +2,8 @@
 
 A FastAPI backend for real-time collaborative code editing with WebSockets support.
 
+- [Demo](./images/Demo.PNG)
+
 ## Features
 
 ✨ **Real-time Collaboration**
@@ -11,16 +13,11 @@ A FastAPI backend for real-time collaborative code editing with WebSockets suppo
 - In-memory room state management
 - Last-write-wins conflict resolution
 
-🗄️ **Persistent Storage**
-- SQLite database for room metadata
-- Code snapshots on demand and on disconnect
-- Automatic database initialization
-
 ## Project Structure
 
 ```
 backend/
-├── main.py                  # FastAPI application entry point
+├── main.py
 ├── core/
 │   └── config.py           # Configuration and settings
 ├── db/
