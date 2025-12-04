@@ -409,7 +409,7 @@ function updateSyncStatus(status) {
 
 // Update User Count
 function updateUserCount() {
-    elements.userCount.textContent = state.activeUsers;
+    elements.userCount.textContent = state.activeUsers > 1 ? state.activeUsers - 1 : 1;
 }
 
 // Update Typing Indicator
