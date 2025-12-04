@@ -189,7 +189,7 @@ function handleWebSocketMessage(message) {
 
         case 'user_joined':
             console.log('User joined:', message.user_id, 'Total users:', message.active_users);
-            state.activeUsers = (message.active_users > 1 ? message.active_users -1 : 1);
+            state.activeUsers = message.active_users;
             updateUserCount();
             showToast('User joined the room', 'success');
             break;

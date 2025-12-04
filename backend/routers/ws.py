@@ -40,12 +40,13 @@ async def websocket_endpoint(
         await manager.connect(room_id, websocket, "pending")
         room_state = manager.get_or_create_room(room_id)
         
-        # Load initial room state from database
-        initial_state = RoomService.get_room_initial_state(db, room_id)
-        room_state.code = initial_state["code"]
-        room_state.language = initial_state["language"]
+        # Load initial room state from database ONLY if room is new (no code yet)
+        if not room_state.code or room_state.code == "# Welcome to the pair programming room!\n# Start typing here...\n":
+            initial_state = RoomService.get_room_initial_state(db, room_id)
+            room_state.code = initial_state["code"]
+            room_state.language = initial_state["language"]
         
-        # Send initial state to the client
+        # Send initial state to the client (current room state, not database)
         await websocket.send_text(json.dumps({
             "type": "init",
             "code": room_state.code,
