@@ -1,10 +1,149 @@
-# ✅ Backend Implementation Complete
+# Getting Started
 
-This document provides a summary of everything that has been implemented for your pair-programming backend.
+A production-ready pair programming application with real-time collaborative code editing.
 
----
+## Prerequisites
 
-## 📋 What You Have
+- **Python 3.9 or higher**
+- **pip** package manager
+- **Modern web browser** (Chrome, Firefox, Safari, Edge)
+
+## Installation & Setup
+
+### 1. Clone and Navigate to Project
+
+```bash
+cd pair-programming
+```
+
+### 2. Create Virtual Environment (Recommended)
+
+**Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**macOS/Linux:**
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## Running the Application
+
+### Start Backend Server
+
+```bash
+python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+The backend will start at `http://localhost:8000`
+
+### Access Frontend
+
+Once the backend is running, open your browser and navigate to:
+
+```
+http://localhost:8000/static/index.html
+```
+
+## API Documentation
+
+After starting the backend, interactive API documentation is available at:
+
+- **Swagger UI (Recommended)**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+These provide interactive testing of all REST and WebSocket endpoints.
+
+## Quick Test
+
+### 1. Create a Room
+```bash
+curl -X POST http://localhost:8000/api/rooms
+```
+
+Response:
+```json
+{"room_id": "550e8400-e29b-41d4-a716-446655440000"}
+```
+
+### 2. Access the UI
+Open two browser tabs with:
+```
+http://localhost:8000/static/index.html?room=550e8400-e29b-41d4-a716-446655440000
+```
+
+### 3. Test Collaboration
+- Type code in one tab
+- See real-time updates in the other tab
+- Observe cursor positions and typing indicators
+
+## Project Structure
+
+```
+pair-programming/
+├── backend/
+│   ├── main.py              # FastAPI application
+│   ├── core/
+│   │   └── config.py        # Configuration
+│   ├── db/
+│   │   ├── database.py      # SQLite setup
+│   │   └── models.py        # Database models
+│   ├── schemas/             # Pydantic schemas
+│   ├── services/            # Business logic
+│   ├── routers/             # REST & WebSocket endpoints
+│   └── data/
+│       └── app.db           # SQLite database (auto-created)
+├── frontend/
+│   ├── index.html           # Main UI
+│   ├── script.js            # Frontend logic
+│   └── styles.css           # Styling
+└── requirements.txt         # Python dependencies
+```
+
+## Configuration
+
+Edit `backend/core/config.py` to customize:
+
+- **Database location**: `DATABASE_PATH`
+- **CORS origins**: `CORS_ORIGINS`
+- **API prefix**: `API_V1_PREFIX`
+
+## Troubleshooting
+
+### Port Already in Use
+
+**Windows:**
+```bash
+netstat -ano | findstr :8000
+taskkill /PID <PID> /F
+```
+
+**macOS/Linux:**
+```bash
+lsof -i :8000
+kill -9 <PID>
+```
+
+### Database Issues
+
+Delete `backend/data/app.db` and restart the application to reset the database.
+
+### CORS Errors
+
+Ensure your frontend URL is in `CORS_ORIGINS` in `backend/core/config.py`.
+
+## Next Steps
+
+See `FEATURES.md` for detailed information about using the application and available features.
 
 A complete, production-ready FastAPI backend for real-time collaborative code editing with:
 
