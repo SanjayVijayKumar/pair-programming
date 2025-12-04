@@ -1,8 +1,10 @@
-"""Main FastAPI application."""
+"""Main FastAPI application with static file serving."""
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from backend.core.config import (
     API_V1_PREFIX,
@@ -52,7 +54,12 @@ app.add_middleware(
     allow_headers=CORS_ALLOW_HEADERS,
 )
 
-# Include routers with API prefix
+# Mount static files from frontend folder
+frontend_dir = Path(__file__).parent.parent / "frontend"
+if frontend_dir.exists():
+    app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
+
+# Include routers
 app.include_router(rooms.router, prefix=API_V1_PREFIX)
 app.include_router(autocomplete.router, prefix=API_V1_PREFIX)
 app.include_router(ws.router, prefix=API_V1_PREFIX)
