@@ -1,6 +1,6 @@
 # Getting Started
 
-A production-ready pair programming application with real-time collaborative code editing.
+A pair programming application with real-time collaborative code editing.
 
 ## Prerequisites
 

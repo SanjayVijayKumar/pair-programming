@@ -1,6 +1,6 @@
 # Pair Programming Backend
 
-A production-ready FastAPI backend for real-time collaborative code editing with WebSockets support.
+A FastAPI backend for real-time collaborative code editing with WebSockets support.
 
 ## Features
 
@@ -47,39 +47,10 @@ backend/
 - pip package manager
 
 ### Setup
+- [Getting started guide](./GETTING_STARTED.md)
 
-1. **Clone and navigate to the project:**
-```bash
-cd pair-programming
-```
-
-2. **Create a virtual environment (recommended):**
-```bash
-# Windows
-python -m venv venv
-venv\Scripts\activate
-
-# macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
-```
-
-3. **Install dependencies:**
-```bash
-pip install -r requirements.txt
-```
-
-4. **Run the application:**
-```bash
-# Option 1: Direct execution
-python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
-
-# Option 2: Using Python main
-cd backend
-python main.py
-```
-
-The server will start at `http://localhost:8000`
+### Features offered
+- [Features](./FEATURES.md)
 
 ## API Documentation
 
@@ -289,6 +260,66 @@ export DATABASE_PATH=/path/to/database.db
 # Set CORS origins (space-separated)
 export CORS_ORIGINS="http://localhost:3000 http://localhost:5173"
 ```
+
+## Architecture & Design Choices
+
+### Backend Architecture
+- **Framework**: Python 3.9 FastAPI for high-performance async HTTP server
+- **Database**: SQLite for room metadata persistence and optional code snapshots
+- **State Management**: In-memory state for live data (cursor positions, typing indicators, code)
+
+### Real-Time Synchronization
+- **WebSocket Pattern**: One WebSocket endpoint per room with ConnectionManager pattern
+- **Connection Management**: Centralized tracking of all active rooms and connected clients
+- **Sync Strategy**: Last-write-wins for code updates - simplest approach for prototype, suitable for focused pair programming
+
+### Frontend Architecture
+- **UI Framework**: Vanilla HTML5 + CSS3 + JavaScript (no build tools)
+- **Editor**: Textarea-based editor with syntax highlighting support
+- **Real-Time Updates**: Debounced WebSocket messages (300ms for code, 500ms for cursor)
+- **Autocomplete**: Context-aware Python suggestions with Tab/Ctrl+Enter to accept
+
+### Message Protocol
+- **Format**: JSON messages over WebSocket
+- **Message Types**: `init`, `code_update`, `cursor_update`, `typing`, `user_joined`, `user_left`, `error`
+- **Broadcasting**: Server broadcasts to all or specific clients per message type
+
+## Scope for improvement
+
+### Scaling & Performance
+- **Redis Pub/Sub**: Enable horizontal scaling by broadcasting WebSocket messages across multiple FastAPI instances. Socket setup with redis adaptor
+- **Redis Streams**: Store message history for late joiners to sync code and cursor state instantly
+
+### Data Persistence & Recovery
+- **Periodic Snapshots**: Auto-save code snapshots at regular intervals (every 30 seconds)
+- **Message History**: Store edit history for recovery and audit trails
+
+### Security & Access Control
+- **Authentication**: User login/signup with JWT tokens or OAuth2
+- **Room Permissions**: Private rooms with invite-only access control
+- **Encryption**: End-to-end encryption for sensitive code
+- **Audit Logging**: Track who made what changes and when
+- **No Access Control**: No permissions or room privacy settings
+
+### User Experience
+- **Rich Editor**: Full Monaco Editor integration with syntax highlighting, themes, keybindings
+- **Inline Autocomplete**: Show suggestions inline with real-time preview
+- **Multi-Cursor Display**: Visual indicators for all users' cursors with live tracking
+- **Presence Avatars**: User avatars and status indicators
+- **Code Review Features**: Commenting, suggestions, diff view
+- **Theme Support**: Dark/light themes with user preferences
+
+## Limitations
+
+### Scalability Limitations
+- **Single Instance Only**: Current prototype runs on single FastAPI instance; in-memory state doesn't support horizontal scaling
+- **No Fault Tolerance**: Server restart loses all active sessions and in-memory state
+
+### Data Consistency
+- **Last-Write-Wins Only**: Simple conflict resolution can overwrite edits in rapid simultaneous typing
+- **No Edit History**: Late joiners can't see previous edits or code history
+- **No Undo/Redo**: Changes to code are permanent within session
+
 ## References
 
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
